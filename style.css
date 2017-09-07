@@ -1,0 +1,36 @@
+.submit {
+    position: fixed;
+    bottom: 8pt;
+    left: 50%;
+    transform: translate(-50%);
+    font-size: 150%;
+    z-index: 50;
+}
+
+fieldset {
+    border: none;
+    margin: 0;
+    padding: 0;
+    padding-left: 8pt;
+    border-left: 1px solid lightgray;
+}
+
+.legend, label, input, textarea {
+    font-size: 12pt;
+}
+
+textarea {
+    width: 100%;
+}
+
+.legend {
+    margin-top: 10pt;
+    margin-bottom: 0;
+}
+
+fieldset {
+}
+
+fieldset:disabled {
+    color: lightgray;
+}

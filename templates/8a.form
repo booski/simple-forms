@@ -1,0 +1,70 @@
+# 8a - Protokoll patienter och anhöriga
+## Bakgrundsdata personer med stroke
+
+  Patientens löpnummer [text, num]
+  Födelseår [text, num]
+  
+  Kön [radio, string]
+    Man
+    Kvinna
+    Annat/Inget svar
+  
+  Huvudsaklig sysselsättning innan stroke [radio, string]
+    Arbetar
+    Studerar
+    Pensionär
+    Arbetssökande
+    Annat [text, string]
+  
+  Boende [radio, string]
+    Lägenhet
+    Hus/radhus
+    Serviceboende
+    Sjukhem
+    Annat [text, string]
+  
+  Social service [check, string]
+    Hemtjänst
+      Antal timmar per vecka [text, num]
+    Personlig assistans
+      Antal timmar per vecka [text, num]
+    Annan hjälp
+      Specifiera [text, string]
+      Antal gånger per månad [text, num]
+  
+  Stöd från familj och vänner
+    Vilket stöd/hjälp har du från familjen och din omgivning i vardagen? (t.ex. påklädning, handla, bankärenden etc) [longtext, string]
+  
+## Fall
+  Har du ramlat någon gång under de senaste tre månaderna? [radio, string]
+    Ja
+      Hur ofta? [text, num]
+      Vad fick du för skada? [check, string]
+        Ingen skada
+        Fraktur [text, string]
+        Mjukdelsskada
+    Nej
+
+## Användning av teknik
+  Mobil [check, string]
+    Tar emot samtal
+    Söker upp telefonnummer
+    Läser SMS
+    Skickar SMS
+    Söker information på internet
+    Laddar ner appar
+    Annat [text, string]
+    Använder ej
+
+  Surfplatta [check, string]
+    Söker information på internet
+    Laddar ner appar
+    Annat [text, string]
+    Använder ej
+  
+  Dator [check, string]
+    Söker information på internet
+    Skriver texter
+    Läser och skickar e-post
+    Annat [text, string]
+    Använder ej
