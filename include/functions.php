@@ -15,18 +15,31 @@ $break         = '<br/>';
 
 function build_index() {
     $patterns = array('%\./templates/%', '/\.form$/');
-    $link = '<h3><a href="?id=¤id">¤id</a></h3>';
+    $link = '<h3><a href="?id=¤id">¤title</a></h3>';
 
     $out = '';
     $out .= "<h1>Välj ett formulär</h1>";
     foreach(glob('./templates/*.form') as $form) {
         
-        $form = preg_replace($patterns, '', $form);
+        $formid = preg_replace($patterns, '', $form);
         $out .= replace(array(
-            '¤id' => $form
+            '¤id'    => $formid,
+            '¤title' => get_title($form)
         ), $link);
     }
     return $out;
+}
+
+function get_title($formfile) {
+    $preg = '/^#(.+)$/';
+    foreach(file($formfile) as $line) {
+        $result = array();
+        preg_match($preg, $line, $result);
+        if(array_key_exists(1, $result)) {
+            return $result[1];
+        }
+    }
+    return NULL;
 }
 
 function build_form($tree, $group = NULL, $template = 'plain') {
@@ -65,6 +78,18 @@ function build_form($tree, $group = NULL, $template = 'plain') {
             $template = 'form';
             $replacements['¤formid'] = $form;
             $replacements['¤token'] = gen_token();
+
+            $message_type = 'hidden';
+            $message = '';
+            if(isset($_COOKIE['result'])) {
+                $message_type = $_COOKIE['result'];
+                $message = $_COOKIE['message'];
+                setcookie('result', '', time() - 3600);
+                setcookie('message', '', time() - 3600);
+            }
+
+            $replacements['¤type'] = $message_type;
+            $replacements['¤message'] = $message;
         }
         return replace($replacements, $fragments[$template]);
     } elseif($childtype !== 'plain') {
@@ -99,7 +124,7 @@ function parse($infile) {
     $indent_size = 2;
 
     $result = array();
-    $preg = '/^( +)?(#+)?([^[]+)(\[([^,]+)(, ?([^]]+))?\])?$/';
+    $preg = '/^( +)?([#!]+)?([^[]+)(\[([^,]+)(, ?([^]]+))?\])?$/';
     foreach($lines as $line) {
         preg_match($preg, rtrim($line), $result);
         if(count($result) === 0) {
@@ -131,6 +156,44 @@ function style($string, $style) {
     return replace(array(
         '¤text' => $string
     ), $styles[$style]);
+}
+
+function save_results() {
+    global $find_token, $save_result, $save_answer;
+    $form = $_POST['form-id'];
+    $token = $_POST['form-token'];
+    $date = time();
+
+    $find_token->bind_param('s', $token);
+    execute($find_token);
+
+    if(count(result($find_token)) != 0) {
+        return error('De här svaren har redan sparats.');
+    }
+
+    begin_trans();
+    $save_result->bind_param('ssi', $form, $token, $date);
+    if(!$save_result->execute()) {
+        revert_trans();
+        return error("Inlämningen med token $token kunde inte sparas.");
+    }
+
+    $ignore = array('form-token', 'form-id');
+    foreach($_POST as $question => $answer) {
+        if(in_array($question, $ignore, TRUE)) {
+            continue;
+        }
+        if(is_array($answer)) {
+            $answer = implode($glue, $answer);
+        }
+        $save_answer->bind_param('sss', $token, $question, $answer);
+        if(!$save_answer->execute()) {
+            revert_trans();
+            return error('Kunde inte spara ett av svaren.');
+        }
+    }
+    commit_trans();
+    return success('Dina svar har sparats.');
 }
 
 class Node {
@@ -211,10 +274,16 @@ class Builder {
     }
 }
 
+function success($message) {
+    setcookie('result', 'success');
+    setcookie('message', $message);
+    return true;
+}
+
 function error($message) {
-    #setcookie('error', $message);
-    echo 'An error has occurred: ' . $message;
-    die;
+    setcookie('result', 'error');
+    setcookie('message', $message);
+    return false;
 }
 
 function prepare($statement) {

@@ -1,22 +1,27 @@
+body {
+    font: 100%/1.6 Verdana, Arial, Helvetica, sans-serif;
+}
+
 .submit {
     position: fixed;
     bottom: 8pt;
     left: 50%;
     transform: translate(-50%);
-    font-size: 150%;
+    #font-size: 150%;
     z-index: 50;
 }
 
 fieldset {
     border: none;
     margin: 0;
+    margin-bottom: 10pt;
     padding: 0;
     padding-left: 8pt;
     border-left: 1px solid lightgray;
 }
 
 .legend, label, input, textarea {
-    font-size: 12pt;
+    #font-size: 12pt;
 }
 
 textarea {
@@ -29,8 +34,33 @@ textarea {
 }
 
 fieldset {
+
 }
 
 fieldset:disabled {
     color: lightgray;
+}
+
+.result {
+    position: fixed;
+    top: 8pt;
+    left: 50%;
+    transform: translate(-50%);
+    padding: 5pt;
+    transition-property: opacity;
+    transition-duration: 1s;
+}
+
+.hidden {
+    display: none;
+}
+
+.success {
+    background-color: #99EE99;
+    border: 2pt solid #44CC44;
+}
+
+.error {
+    background-color: #EE9999;
+    border: 2pt solid #CC4444;
 }
