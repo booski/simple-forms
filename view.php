@@ -5,6 +5,11 @@ require_once('./include/functions.php');
 
 header('Content-Type: text/plain; charset=UTF-8');
 
+$replacements = array(
+    $glue  => ' -> ',
+    $space => ' '
+);
+
 execute($get_results);
 $resultrows = result($get_results);
 
@@ -21,16 +26,8 @@ foreach($resultrows as $row) {
     }
     $data_rows = result($get_answers);
     foreach($data_rows as $data) {
-        $question = replace(array(
-            $glue  => '; ',
-            $space => ' '
-        ), $data['question']);
-
-        $answer = replace(array(
-            $glue  => '; ',
-            $space => ' '
-        ), $data['answer']);
-
+        $question = replace($replacements, $data['question']);
+        $answer = replace($replacements, $data['answer']);
         echo "\t$question: $answer\n";
     }
     echo "\n";
