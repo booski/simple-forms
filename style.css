@@ -2,15 +2,6 @@ body {
     font: 100%/1.6 Verdana, Arial, Helvetica, sans-serif;
 }
 
-.submit {
-    position: fixed;
-    bottom: 8pt;
-    left: 50%;
-    transform: translate(-50%);
-    #font-size: 150%;
-    z-index: 50;
-}
-
 fieldset {
     border: none;
     margin: 0;
@@ -20,25 +11,24 @@ fieldset {
     border-left: 1px solid lightgray;
 }
 
-.legend, label, input, textarea {
-    #font-size: 12pt;
-}
-
 textarea {
     width: 100%;
 }
 
-.legend {
+form div + div {
     margin-top: 10pt;
-    margin-bottom: 0;
 }
 
-fieldset {
-
+br:last-child {
+    display: none;
 }
 
-fieldset:disabled {
-    color: lightgray;
+.submit {
+    position: fixed;
+    bottom: 8pt;
+    left: 50%;
+    transform: translate(-50%);
+    z-index: 50;
 }
 
 .result {
@@ -64,3 +54,4 @@ fieldset:disabled {
     background-color: #EE9999;
     border: 2pt solid #CC4444;
 }
+

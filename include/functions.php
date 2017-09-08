@@ -11,7 +11,6 @@ $find_token  = prepare('select `token` from `result` where `token`=?');
 
 $glue          = "\x1E"; //ascii record separator
 $space         = "\x1F"; //ascii unit separator
-$break         = '<br/>';
 
 function build_index() {
     $patterns = array('%\./templates/%', '/\.form$/');
@@ -42,66 +41,76 @@ function get_title($formfile) {
     return NULL;
 }
 
-function build_form($tree, $group = NULL, $template = 'plain') {
-    global $form, $fragments, $glue, $space, $break;
+function build_form($tree, $formid) {
+    global $fragments;
 
-    $nodestring    = $tree->text;
-    $childtype     = $tree->childtype;
-    $styled_string = style($nodestring, $tree->style);
-    $html_name     = str_replace(' ', $space, $nodestring);
-    $id            = $group .$glue. $html_name;
+    $childresult = '';
+    foreach($tree->children as $child) {
+        $childresult .= build_form_parts($child, '', $tree->childtype);
+    }
 
+    $replacements = array(
+        '¤children' => $childresult,
+        '¤formid'   => $formid,
+        '¤token'    => gen_token(),
+        '¤type'     => 'hidden',
+        '¤message'  => ''
+    );
+    
+    if(isset($_COOKIE['result'])) {
+        $replacements['¤type'] = $_COOKIE['result'];
+        $replacements['¤message'] = $_COOKIE['message'];
+        setcookie('result', '', time() - 3600);
+        setcookie('message', '', time() - 3600);
+    }
+    
+    return replace($replacements, $fragments['form']);
+}
+
+function build_form_parts($tree, $group, $template) {
+    global $fragments, $glue, $space;
+
+    $nodestring  = $tree->text;
+    $childtype   = $tree->childtype;
+    $html_string = style($nodestring, $tree->style);
+    $html_name   = str_replace(' ', $space, $nodestring);
+    $html_id     = $group .$glue. $html_name;
+
+    if(!$tree->hasChild() && $childtype !== 'plain') {
+        $leaf_name = $group .$glue. $html_name;
+        $replacements = array(
+            '¤text'  => $html_string,
+            '¤name'  => $leaf_name,
+            '¤id'    => $leaf_name,
+        );
+        $html_string = replace($replacements, $fragments[$childtype]);
+    }
+    
     $node_html = replace(array(
-        '¤text'  => $styled_string,
+        '¤text'  => $html_string,
         '¤name'  => $group,
-        '¤id'    => $id,
+        '¤id'    => $html_id,
         '¤value' => $html_name
     ), $fragments[$template]);
-    
+
     if($tree->hasChild()) {
-        $childresult = '';
-        $childgroup = '';
-        if($group && $group !== 'ROOT') {
+        $childgroup = $html_name;
+        if($group) {
             $childgroup = implode($glue, array($group, $html_name));
-        } else {
-            $childgroup = $html_name;
         }
+
+        $childresult = '';
         foreach($tree->children as $child) {
-            $childresult .= build_form($child, $childgroup, $childtype);
+            $childresult .= build_form_parts($child, $childgroup, $childtype);
         }
-        $template = 'parent';
-        $replacements = array(
+
+        $node_html = replace(array(
             '¤text'     => $node_html,
             '¤children' => $childresult
-        );
-        if($nodestring === 'ROOT') {
-            $template = 'form';
-            $replacements['¤formid'] = $form;
-            $replacements['¤token'] = gen_token();
-
-            $message_type = 'hidden';
-            $message = '';
-            if(isset($_COOKIE['result'])) {
-                $message_type = $_COOKIE['result'];
-                $message = $_COOKIE['message'];
-                setcookie('result', '', time() - 3600);
-                setcookie('message', '', time() - 3600);
-            }
-
-            $replacements['¤type'] = $message_type;
-            $replacements['¤message'] = $message;
-        }
-        return replace($replacements, $fragments[$template]);
-    } elseif($childtype !== 'plain') {
-        $name = $group .$glue. $html_name;
-        $replacements = array(
-            '¤text'  => $node_html,
-            '¤name'  => $name,
-            '¤id'    => $name,
-        );
-        return replace($replacements, $fragments[$childtype]) . $break;
+        ), $fragments['parent']);
+        
     }
-    return $node_html . $break;
+    return $node_html;
 }
 
 function gen_token() {

@@ -203,7 +203,7 @@ button, input[type="submit"] {
     font-family: Georgia, "Times New Roman", Times, serif;
     margin-left: auto;
     margin-right: auto;
-    margin-bottom: 56px;
+    margin-bottom: 100px;
     margin-top: 12px;
     padding-left: 4%;
     padding-right: 4%;
@@ -243,9 +243,6 @@ button, input[type="submit"] {
  */
 
 @media screen and (max-width: 17em) {
-    #contents {
-        margin-bottom: 72px;
-    }
     #footer-contact {
         clear: left;
         float: left;
@@ -254,10 +251,7 @@ button, input[type="submit"] {
     }
 }
 
-@media screen and (min-width: 24em) {
-    #contents {
-        margin-bottom: 40px;
-    }
+@media screen and (max-width: 24em) {
     #footer-name > div {
         display: inline;
     }

@@ -11,7 +11,7 @@ if(!isset($_GET['id'])) {
     $content = build_index();
 } else {
     $form = $_GET['id'];
-    $content = build_form(parse($form));
+    $content = build_form(parse($form), $form);
 }
 
 print replace(array(
