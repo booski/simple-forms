@@ -30,7 +30,7 @@ function build_index() {
 }
 
 function get_title($formfile) {
-    $preg = '/^#(.+)$/';
+    $preg = '/^\s*#+\s*(.+)$/';
     foreach(file($formfile) as $line) {
         $result = array();
         preg_match($preg, $line, $result);

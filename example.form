@@ -5,15 +5,22 @@
 
 Just some text
 
-## This part
+## The following question is a child of this heading
   Question with radio-button answers [radio]
     Answer 1
     Answer 2
     Answer 3 with text field [text]
 
+## The following question is not a child of this heading
 Question with checkboxes [check]
   Answer 1
   Answer 2
 
 Question with long text answer [longtext]
 
+Questions can [radio]
+  be
+  nested [check]
+    to
+    arbitrary
+    depth [text]
