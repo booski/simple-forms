@@ -67,21 +67,23 @@ function build_form($tree, $formid) {
     return replace($replacements, $fragments['form']);
 }
 
-function build_form_parts($tree, $group, $template) {
+function build_form_parts($tree, $group, $template, $parent_extras = '') {
     global $fragments, $glue, $space;
 
     $nodestring  = $tree->text;
     $childtype   = $tree->childtype;
+    $extras      = parse_extras($tree->extra_arr);
     $html_string = style($nodestring, $tree->style);
     $html_name   = str_replace(' ', $space, $nodestring);
     $html_id     = $group .$glue. $html_name;
 
-    if(!$tree->hasChild() && $childtype !== 'plain') {
+    if($childtype !== 'plain' && !$tree->hasChild()) {
         $leaf_name = $group .$glue. $html_name;
         $replacements = array(
             '¤text'  => $html_string,
             '¤name'  => $leaf_name,
             '¤id'    => $leaf_name,
+            '¤extra' => $extras,
         );
         $html_string = replace($replacements, $fragments[$childtype]);
     }
@@ -90,7 +92,8 @@ function build_form_parts($tree, $group, $template) {
         '¤text'  => $html_string,
         '¤name'  => $group,
         '¤id'    => $html_id,
-        '¤value' => $html_name
+        '¤value' => $html_name,
+        '¤extra' => $parent_extras,
     ), $fragments[$template]);
 
     if($tree->hasChild()) {
@@ -101,7 +104,7 @@ function build_form_parts($tree, $group, $template) {
 
         $childresult = '';
         foreach($tree->children as $child) {
-            $childresult .= build_form_parts($child, $childgroup, $childtype);
+            $childresult .= build_form_parts($child, $childgroup, $childtype, $extras);
         }
 
         $node_html = replace(array(
@@ -133,7 +136,7 @@ function parse($infile) {
     $indent_size = 2;
 
     $result = array();
-    $preg = '/^( +)?([#!]+)?([^[]+)(\[([^,]+)(, ?([^]]+))?\])?$/';
+    $preg = '/^( +)?([#!]+)?([^[]+)(\[([^:]+)(: ?([^]]+))?\])?$/';
     foreach($lines as $line) {
         preg_match($preg, rtrim($line), $result);
         if(count($result) === 0) {
@@ -147,11 +150,11 @@ function parse($infile) {
         if(array_key_exists(5, $result)) {
             $childtype = $result[5];
         }
-        $datatype = 'string';
+        $extra_arr = array();
         if(array_key_exists(7, $result)) {
-            $datatype = $result[7];
+            $extra_arr = preg_split('/ *, */', $result[7]);
         }
-        $builder->add($depth, $text, $style, $childtype, $datatype);
+        $builder->add($depth, $text, $style, $childtype, $extra_arr);
     }
     return $tree;
 }
@@ -165,6 +168,10 @@ function style($string, $style) {
     return replace(array(
         '¤text' => $string
     ), $styles[$style]);
+}
+
+function parse_extras($extra_arr) {
+    return implode(' ', $extra_arr);
 }
 
 function save_results() {
@@ -211,13 +218,15 @@ class Node {
     public $childtype = '';
     public $children = array();
     public $parent = NULL;
-    public $datatype = NULL;
+    public $extra_arr = array();
 
-    function __construct($text, $style = '', $childtype = 'plain', $datatype = 'string') {
+    function __construct($text, $style = '', $childtype = 'plain', $extra_arr = NULL) {
         $this->text = $text;
         $this->style = $style;
         $this->childtype = $childtype;
-        $this->datatype = $datatype;
+        if($extra_arr !== NULL) {
+            $this->extra_arr = $extra_arr;
+        }
     }
 
     function __toString() {
@@ -227,8 +236,8 @@ class Node {
     function toStrings() {
         $out = array();
         $temp = 'text: '.$this->text.' ['.$this->childtype;
-        if($datatype) {
-            $temp .= ', '.$this->datatype;
+        if($extra_arr) {
+            $temp .= ': '.implode(', ', $this->extra_arr);
         }
         $temp .= ']';
         $out[] = $temp;
@@ -263,8 +272,8 @@ class Builder {
         $this->depth = $depth;
     }
 
-    function add($depth, $text, $style, $childtype, $datatype) {
-        $node = new Node($text, $style, $childtype, $datatype);
+    function add($depth, $text, $style, $childtype, $extra_arr) {
+        $node = new Node($text, $style, $childtype, $extra_arr);
 
         if($depth > $this->depth) {
             $this->node->child($node);
