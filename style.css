@@ -31,6 +31,11 @@ br:last-child {
     z-index: 50;
 }
 
+.answersubmit {
+    position: initial;
+    transform: initial;
+}
+
 .result {
     position: fixed;
     top: 8pt;

@@ -1,0 +1,45 @@
+<h1>Ladda ner formulärsvar</h1>
+<div class="result ¤type" onclick="hide_error(event)">
+  ¤message
+</div>
+<form method="GET" action="./get.php">
+  <p>
+    Vill du inte filtrera så lämnar du fältet tomt.
+  </p>
+  <p>
+    <label for="patientid">
+      Ange patientnummer:
+    </label>
+    <input type="text"
+	   id="patientid"
+	   name="patientid"
+	   placeholder="t.ex. 100"
+	   title="Lämna tomt för att inte filtrera" />
+  </p>
+  <p>
+    <label for="formid">
+      Ange fomulär:
+    </label>
+    <input type="text"
+	   id="formid"
+	   name="formid"
+	   placeholder="t.ex. 8a"
+	   title="Lämna tomt för att inte filtrera" />
+  </p>
+  <p>
+    <label for="datum">
+      Tidigaste svarsdatum:
+    </label>
+    <input type="text"
+	   id="datum"
+	   name="datum"
+	   placeholder="t.ex. 2017-08-31"
+	   title="Lämna tomt för att inte filtrera" />
+  </p>
+  <button class="submit answersubmit" name="download" title="Klicka här för att spara till fil">
+    Ladda ner
+  </button>
+  <button class="submit answersubmit" name="show" title="Klicka här för att visa direkt på skärmen">
+    Visa
+  </button>
+</form>

@@ -1,16 +1,17 @@
 <?php
 
 $fragments = get_fragments('./include/forms.html');
-$styles = get_fragments('./include/styles.html');
+$styles    = get_fragments('./include/styles.html');
+$results   = get_fragments('./include/answer.html');
 
 $save_result = prepare('insert into `result`(`form`, `token`, `date`) values (?, ?, ?)');
-$get_results = prepare('select * from `result`');
+$get_results = prepare('select * from `result` where `date`>? and `form` like ?');
 $save_answer = prepare('insert into `data`(`token`, `question`, `answer`) values (?, ?, ?)');
 $get_answers = prepare('select * from `data` where `token`=?');
 $find_token  = prepare('select `token` from `result` where `token`=?');
 
-$glue          = "\x1E"; //ascii record separator
-$space         = "\x1F"; //ascii unit separator
+$glue  = "\x1E"; //ascii record separator
+$space = "\x1F"; //ascii unit separator
 
 function build_index() {
     $patterns = array('%\./templates/%', '/\.form$/');
@@ -175,7 +176,7 @@ function parse_extras($extra_arr) {
 }
 
 function save_results() {
-    global $find_token, $save_result, $save_answer;
+    global $glue, $space, $find_token, $save_result, $save_answer;
     $form = $_POST['form-id'];
     $token = $_POST['form-token'];
     $date = time();
@@ -201,6 +202,7 @@ function save_results() {
         }
         if(is_array($answer)) {
             $answer = implode($glue, $answer);
+            error_log($answer);
         }
         $save_answer->bind_param('sss', $token, $question, $answer);
         if(!$save_answer->execute()) {
@@ -211,6 +213,100 @@ function save_results() {
     commit_trans();
     return success('Dina svar har sparats.');
 }
+
+function build_resultpage() {
+    global $results;
+
+    $replacements = array(
+        '¤type'    => 'hidden',
+        '¤message' => ''
+    );
+    
+    if(isset($_COOKIE['result'])) {
+        $replacements['¤type'] = $_COOKIE['result'];
+        $replacements['¤message'] = $_COOKIE['message'];
+        setcookie('result', '', time() - 3600);
+        setcookie('message', '', time() - 3600);
+    }
+
+    return replace($replacements, $results['base']);
+}
+
+function build_results($cutoff_date, $patient_id, $form_id) {
+    global $glue, $space, $get_results, $get_answers;
+    $qr = array(
+        $glue  => ' -> ',
+        $space => ' '
+    );
+    $ar = array(
+        $glue  => '; ',
+        $space => ' '
+    );
+
+    $out = '';
+
+    if($form_id === '') {
+        $form_id = '%';
+    }
+    
+    $get_results->bind_param('is', $cutoff_date, $form_id);
+    execute($get_results);
+    $resultrows = result($get_results);
+    
+    foreach($resultrows as $row) {
+        $date  = date('Y-m-d H:i', $row['date']);
+        $token = $row['token'];
+        $form  = $row['form'];
+
+        $get_answers->bind_param('s', $token);
+        if(!$get_answers->execute()) {
+            echo "couldn't get result";
+            die;
+        }
+        $data_rows = result($get_answers);
+
+        if($patient_id) {
+            $include = False;
+        } else {
+            $include = True;
+        }
+        
+        $qline = "formulär\tdatum\t";
+        $aline = "$form\t$date\t";
+        foreach($data_rows as $data) {
+            $q = replace($qr, $data['question']);
+            $a = replace($ar, $data['answer']);
+
+            if($patient_id && strpos(strtolower($q), 'patientens löpnummer') !== FALSE) {
+                if($a == $patient_id) {
+                    $include = True;
+                }
+            }
+            
+            $qline .= $q."\t";
+            $aline .= $a."\t";
+        }
+        if($include) {
+            $out .= $qline."\n";
+            $out .= $aline."\n";
+        }
+    }
+    if(!$out) {
+        $out = "Det finns inga svar som passar dina kriterier.\n";
+        if($patient_id) {
+            $out .= "Patient: $patient_id\n";
+        }
+        if($form_id !== '%') {
+            $out .= "Formulär: $form_id\n";
+        }
+        if($cutoff_date) {
+            $cutoff_date = date('Y-m-d', $cutoff_date);
+            $out .= "Tidigaste svarsdatum: $cutoff_date\n";
+        }
+    }
+    return $out;
+}
+
 
 class Node {
     public $text = '';

@@ -8,7 +8,11 @@ $base = replace($translations['sv'], file_get_contents('./template.html'));
 
 $content = '';
 if(!isset($_GET['id'])) {
-    $content = build_index();
+    if(isset($_GET['result'])) {
+        $content = build_resultpage();
+    } else {
+        $content = build_index();
+    }
 } else {
     $form = $_GET['id'];
     $content = build_form(parse($form), $form);
