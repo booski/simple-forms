@@ -252,6 +252,12 @@ function build_results($cutoff_date, $patient_id, $form_id) {
     $get_results->bind_param('is', $cutoff_date, $form_id);
     execute($get_results);
     $resultrows = result($get_results);
+
+    $allheaders = True;
+    if($form_id !== '%') {
+        $allheaders = False;
+    }
+    $first = True;
     
     foreach($resultrows as $row) {
         $date  = date('Y-m-d H:i', $row['date']);
@@ -282,12 +288,19 @@ function build_results($cutoff_date, $patient_id, $form_id) {
                     $include = True;
                 }
             }
+
+            if(preg_match('%^([[:digit:]]+) - .+$%', $a)) {
+                $a = preg_replace('%^([[:digit:]]+) - .+$%', '$1', $a);
+            }
             
             $qline .= $q."\t";
             $aline .= $a."\t";
         }
         if($include) {
-            $out .= $qline."\n";
+            if($allheaders || $first) {
+                $out .= $qline."\n";
+                $first = False;
+            }
             $out .= $aline."\n";
         }
     }
