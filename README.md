@@ -2,9 +2,11 @@
 
 ## Setup
 
+```
 cp config.php.example config.php
 editor config.php
 mkdir templates
+```
 
 ## Templates
 
