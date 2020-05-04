@@ -60,3 +60,14 @@ br:last-child {
     border: 2pt solid #CC4444;
 }
 
+#resultlink {
+    float: right;
+    font-family: Verdana, Arial, Helvetica, sans-serif;
+    background-image: url(images/button-background-repeater.gif);
+    background-position: left;
+    background-repeat: repeat-x;
+    color: white;
+    text-decoration: none;
+    padding: 3pt 7pt;
+    border: 1px solid lightgray;
+}

@@ -17,7 +17,7 @@ function build_index() {
     $patterns = array('%\./templates/%', '/\.form$/');
     $link = '<h3><a href="?id=¤id">¤title</a></h3>';
 
-    $out = '';
+    $out = '<a href="?result" id="resultlink">Hämta resultat</a>';
     $out .= "<h1>Välj ett formulär</h1>";
     foreach(glob('./templates/*.form') as $form) {
         
@@ -27,6 +27,7 @@ function build_index() {
             '¤title' => get_title($form)
         ), $link);
     }
+
     return $out;
 }
 
