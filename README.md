@@ -16,9 +16,11 @@ The file format recognizes three basic types of data: text, questions and altern
 
 Text is anything that is not recognized as a question or an alternative. Each line is treated as a paragraph.
 
-A question is a line with a question type in square brackets ([]) at the end. Possible types are `text`, `longtext`, `radio` and `check`.
+A question is a line with a question type in square brackets ([]) at the end. Possible types are `text`, `longtext`, `radio`, `check` and `range`.
 
 `radio` and `check` type questions need to have alternatives. Alternatives are defined by creating a block of lines immediately following the question, indented by two spaces.
+
+When declaring a question, it is possible to add a comma-separated list of extra modifiers using a colon (:) trailing the question type string inside the square brackets. The exact effect of extra modifiers depends on the question type, see examples.form for currently supported modifiers.
 
 Questions can be nested, so for example it is possible to have a text answer as an alternative to a multiple-choice question.
 

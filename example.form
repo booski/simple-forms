@@ -5,8 +5,10 @@
 
 Just some text
 
+Some text that gets <u>underlined</u> with straight html tags.
+
 ## The following question is a child of this heading
-  Question with radio-button answers [radio]
+  Question with radio-button answers [radio:required]
     Answer 1
     Answer 2
     Answer 3 with text field [text]
@@ -18,9 +20,18 @@ Question with checkboxes [check]
 
 Question with long text answer [longtext]
 
-Questions can [radio]
+A question that must be answered [text:required]
+Questions of type text, longtext and radio can be tagged as required.
+
+Radio and check questions can [radio]
   be
   nested [check]
     to
     arbitrary
     depth [text]
+
+Text and longtext questions can't have children.
+
+Ranges are also possible, and are kind of complicated [range: min=10, max=20, minlabel=Little, maxlabel=A lot]
+
+!Invalid forms will produce interesting results.

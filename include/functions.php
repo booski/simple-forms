@@ -69,23 +69,37 @@ function build_form($tree, $formid) {
     return replace($replacements, $fragments['form']);
 }
 
-function build_form_parts($tree, $group, $template, $parent_extras = '') {
+function build_form_parts($tree, $group, $template, $parent_extras = array()) {
     global $fragments, $glue, $space;
 
     $nodestring  = $tree->text;
     $childtype   = $tree->childtype;
-    $extras      = parse_extras($tree->extra_arr);
     $html_string = style($nodestring, $tree->style);
     $html_name   = str_replace(' ', $space, $nodestring);
     $html_id     = $group .$glue. $html_name;
 
-    if($childtype !== 'plain' && !$tree->hasChild()) {
+    switch($childtype) {
+    case "text":
+    case "longtext":
         $leaf_name = $group .$glue. $html_name;
         $replacements = array(
             '¤text'  => $html_string,
             '¤name'  => $leaf_name,
             '¤id'    => $leaf_name,
-            '¤extra' => $extras,
+            '¤extra' => parse_extras($tree->extra_arr),
+        );
+        $html_string = replace($replacements, $fragments[$childtype]);
+        break;
+    case "range":
+        $leaf_name = $group .$glue. $html_name;
+        $replacements = array(
+            '¤text'      => $html_string,
+            '¤name'      => $leaf_name,
+            '¤id'        => $leaf_name,
+            '¤min'       => $tree->extra_arr['min'],
+            '¤max'       => $tree->extra_arr['max'],
+            '¤label_min' => $tree->extra_arr['minlabel'],
+            '¤label_max' => $tree->extra_arr['maxlabel'],
         );
         $html_string = replace($replacements, $fragments[$childtype]);
     }
@@ -95,7 +109,7 @@ function build_form_parts($tree, $group, $template, $parent_extras = '') {
         '¤name'  => $group,
         '¤id'    => $html_id,
         '¤value' => $html_name,
-        '¤extra' => $parent_extras,
+        '¤extra' => parse_extras($parent_extras),
     ), $fragments[$template]);
 
     if($tree->hasChild()) {
@@ -106,7 +120,7 @@ function build_form_parts($tree, $group, $template, $parent_extras = '') {
 
         $childresult = '';
         foreach($tree->children as $child) {
-            $childresult .= build_form_parts($child, $childgroup, $childtype, $extras);
+            $childresult .= build_form_parts($child, $childgroup, $childtype, $tree->extra_arr);
         }
 
         $node_html = replace(array(
@@ -154,7 +168,12 @@ function parse($infile) {
         }
         $extra_arr = array();
         if(array_key_exists(7, $result)) {
-            $extra_arr = preg_split('/ *, */', $result[7]);
+            $temp_arr = preg_split('/ *, */', $result[7]);
+            $extra_arr = array();
+            foreach($temp_arr as $item) {
+                [$key, $value] = explode("=", $item);
+                $extra_arr[$key] = $value;
+            }
         }
         $builder->add($depth, $text, $style, $childtype, $extra_arr);
     }
@@ -173,7 +192,15 @@ function style($string, $style) {
 }
 
 function parse_extras($extra_arr) {
-    return implode(' ', $extra_arr);
+    $out = '';
+    foreach($extra_arr as $key => $value) {
+        if($value === '') {
+            $out.= $key .' ';
+        } else {
+            $out .= $key.'="'.$value.'" ';
+        }
+    }
+    return $out;
 }
 
 function save_results() {
@@ -350,7 +377,7 @@ class Node {
         $out = array();
         $temp = 'text: '.$this->text.' ['.$this->childtype;
         if($extra_arr) {
-            $temp .= ': '.implode(', ', $this->extra_arr);
+            $temp .= ': '.parse_extras($this->extra_arr);
         }
         $temp .= ']';
         $out[] = $temp;
@@ -424,7 +451,7 @@ function prepare($statement) {
         print 'Failed to prepare the following statement: '.$statement;
         print '<br/>';
         print $db->errno.': '.$db->error;
-        exit(1);;
+        exit(1);
     }
 
     return $s;
