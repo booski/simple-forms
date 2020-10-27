@@ -193,6 +193,7 @@ function save_results() {
     $save_result->bind_param('ssi', $form, $token, $date);
     if(!$save_result->execute()) {
         revert_trans();
+        error_log($save_result->error);
         return error("Inlämningen med token $token kunde inte sparas.");
     }
 
@@ -208,6 +209,7 @@ function save_results() {
         $save_answer->bind_param('sss', $token, $question, $answer);
         if(!$save_answer->execute()) {
             revert_trans();
+            error_log($save_answer->error);
             return error('Kunde inte spara ett av svaren.');
         }
     }
@@ -267,6 +269,7 @@ function build_results($cutoff_date, $patient_id, $form_id) {
 
         $get_answers->bind_param('s', $token);
         if(!$get_answers->execute()) {
+            error_log($get_answers->error);
             echo "couldn't get result";
             die;
         }
