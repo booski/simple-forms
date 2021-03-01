@@ -1,4 +1,4 @@
-# Heading 1
+# Example form heading
 ## Heading 2
 ### Heading 3
 ! Bold text
@@ -13,6 +13,11 @@ Some text that gets <u>underlined</u> with straight html tags.
     Answer 2
     Answer 3 with text field [text]
 
+  Radio type questions that are not marked "required" get an additional default alternative:
+  Optional radio question [radio]
+    Option 1
+    Option 2
+
 ## The following question is not a child of this heading
 Question with checkboxes [check]
   Answer 1
@@ -21,7 +26,8 @@ Question with checkboxes [check]
 Question with long text answer [longtext]
 
 A question that must be answered [text:required]
-Questions of type text, longtext and radio can be tagged as required.
+
+Questions of type text, longtext and radio can be tagged as required. Text and longtext questions can't have children.
 
 Radio and check questions can [radio]
   be
@@ -29,8 +35,6 @@ Radio and check questions can [radio]
     to
     arbitrary
     depth [text]
-
-Text and longtext questions can't have children.
 
 Ranges are also possible, and are kind of complicated [range: min=10, max=20, minlabel=Little, maxlabel=A lot]
 

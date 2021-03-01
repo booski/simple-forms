@@ -8,7 +8,7 @@ mkdir templates
 
 ## Templates
 
-All form templates must be placed in the `templates` directory and have the extension `.form`. Any non-matching files will be ignored.
+All form templates must be placed in the `templates` directory and have the extension `.form`. Any non-matching files will be ignored. The ID of a template in the database is the filename without the `.form` extension.
 
 ### Template syntax
 
@@ -28,7 +28,7 @@ Indentation can also be used for logical grouping. An indented block following a
 
 There is also basic styling. Create a header by adding between one and three hash signs (#) at the beginning of the line. Make the line bold by adding an exclamation mark (!) to the beginning of the line. In-line HTML tags are also respected.
 
-In order for a form to be listed on the index page, it must contain at least one heading. The first heading in the form will be used as its title on the tindex page.
+In order for a form to be listed on the index page, it must contain at least one heading. The first heading in the form will be used as its title on the index page.
 
 Examples in example.form
 
