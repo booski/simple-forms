@@ -32,3 +32,10 @@ In order for a form to be listed on the index page, it must contain at least one
 
 Examples in example.form
 
+== Data export
+
+The data export function will mostly export all data unaltered, with one notable exception:
+
+Any answer formatted as "<number> - <arbitrary text>" (e.g. "3 - sometimes") will be stripped of its text part and only exported as "<number>" (e.g. "3").
+
+The full answer text is stored in the database, so it is possible to retrieve the full answer with a bit of work if necessary.
