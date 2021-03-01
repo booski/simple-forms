@@ -81,30 +81,31 @@ function build_form_parts($tree, $group, $template, $parent_extras = array()) {
     $html_name   = str_replace(' ', $space, $nodestring);
     $html_id     = $group .$glue. $html_name;
 
+    # childless question types
     switch($childtype) {
-    case "text":
-    case "longtext":
-        $leaf_name = $group .$glue. $html_name;
-        $replacements = array(
-            '¤text'  => $html_string,
-            '¤name'  => $leaf_name,
-            '¤id'    => $leaf_name,
-            '¤extra' => parse_extras($tree->extra_arr),
-        );
-        $html_string = replace($replacements, $fragments[$childtype]);
-        break;
-    case "range":
-        $leaf_name = $group .$glue. $html_name;
-        $replacements = array(
-            '¤text'      => $html_string,
-            '¤name'      => $leaf_name,
-            '¤id'        => $leaf_name,
-            '¤min'       => $tree->extra_arr['min'],
-            '¤max'       => $tree->extra_arr['max'],
-            '¤label_min' => $tree->extra_arr['minlabel'],
-            '¤label_max' => $tree->extra_arr['maxlabel'],
-        );
-        $html_string = replace($replacements, $fragments[$childtype]);
+        case "text":
+        case "longtext":
+            $leaf_name = $group .$glue. $html_name;
+            $replacements = array(
+                '¤text'  => $html_string,
+                '¤name'  => $leaf_name,
+                '¤id'    => $leaf_name,
+                '¤extra' => parse_extras($tree->extra_arr),
+            );
+            $html_string = replace($replacements, $fragments[$childtype]);
+            break;
+        case "range":
+            $leaf_name = $group .$glue. $html_name;
+            $replacements = array(
+                '¤text'      => $html_string,
+                '¤name'      => $leaf_name,
+                '¤id'        => $leaf_name,
+                '¤min'       => $tree->extra_arr['min'],
+                '¤max'       => $tree->extra_arr['max'],
+                '¤label_min' => $tree->extra_arr['minlabel'],
+                '¤label_max' => $tree->extra_arr['maxlabel'],
+            );
+            $html_string = replace($replacements, $fragments[$childtype]);
     }
     
     $node_html = replace(array(
@@ -121,11 +122,31 @@ function build_form_parts($tree, $group, $template, $parent_extras = array()) {
             $childgroup = implode($glue, array($group, $html_name));
         }
 
+        # build each answer option
         $childresult = '';
         foreach($tree->children as $child) {
-            $childresult .= build_form_parts($child, $childgroup, $childtype, $tree->extra_arr);
+            $childresult .= build_form_parts($child,
+                                             $childgroup,
+                                             $childtype,
+                                             $tree->extra_arr);
         }
 
+        # add "no answer" option last in radio button lists
+        if($childtype == 'radio') {
+            $defaultstring = 'Inget svar';
+            $html_string = style($defaultstring, $tree->style);
+            $html_name = str_replace(' ', $space, $defaultstring);
+            $html_id = $childgroup .$glue. $html_name;
+
+            $childresult .= replace(array(
+                '¤id'    => $html_id,
+                '¤name'  => $childgroup,
+                '¤value' => $html_name,
+                '¤text'  => $html_string
+            ), $fragments['radio_default']);
+        }
+
+        # wrap the results in a fieldset
         $node_html = replace(array(
             '¤text'     => $node_html,
             '¤children' => $childresult
@@ -174,8 +195,12 @@ function parse($infile) {
             $temp_arr = preg_split('/ *, */', $result[7]);
             $extra_arr = array();
             foreach($temp_arr as $item) {
-                [$key, $value] = explode("=", $item);
-                $extra_arr[$key] = $value;
+                if(strpos($item, '=') !== false) {
+                    [$key, $value] = explode("=", $item);
+                    $extra_arr[$key] = $value;
+                } else {
+                    $extra_arr[$item] = $item;
+                }
             }
         }
         $builder->add($depth, $text, $style, $childtype, $extra_arr);
