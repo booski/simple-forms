@@ -131,8 +131,8 @@ function build_form_parts($tree, $group, $template, $parent_extras = array()) {
                                              $tree->extra_arr);
         }
 
-        # add "no answer" option last in radio button lists
-        if($childtype == 'radio') {
+        # add "no answer" option last in optional radio button lists
+        if($childtype == 'radio' && !in_array('required', $tree->extra_arr)) {
             $defaultstring = 'Inget svar';
             $html_string = style($defaultstring, $tree->style);
             $html_name = str_replace(' ', $space, $defaultstring);
@@ -342,7 +342,8 @@ function build_results($cutoff_date, $patient_id, $form_id) {
             $q = replace($qr, $data['question']);
             $a = replace($ar, $data['answer']);
 
-            if($patient_id && strpos(strtolower($q), 'patientens löpnummer') !== FALSE) {
+            if($patient_id &&
+                strpos(strtolower($q), 'patientens löpnummer') !== FALSE) {
                 if($a == $patient_id) {
                     $include = True;
                 }
@@ -388,7 +389,10 @@ class Node {
     public $parent = NULL;
     public $extra_arr = array();
 
-    function __construct($text, $style = '', $childtype = 'plain', $extra_arr = NULL) {
+    function __construct($text,
+                         $style = '',
+                         $childtype = 'plain',
+                         $extra_arr = NULL) {
         $this->text = $text;
         $this->style = $style;
         $this->childtype = $childtype;
