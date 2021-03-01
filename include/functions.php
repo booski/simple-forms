@@ -19,7 +19,10 @@ function build_index() {
 
     $out = '<a href="?result" id="resultlink">Hämta resultat</a>';
     $out .= "<h1>Välj ett formulär</h1>";
-    foreach(glob('./templates/*.form') as $form) {
+
+    $forms = glob('./templates/*.form');
+    natsort($forms);
+    foreach($forms as $form) {
         
         $formid = preg_replace($patterns, '', $form);
         $out .= replace(array(

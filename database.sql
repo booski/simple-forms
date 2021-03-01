@@ -27,7 +27,6 @@ CREATE TABLE `data` (
   `token` varchar(32) NOT NULL,
   `question` text NOT NULL,
   `answer` text NOT NULL,
-  `type` varchar(32) NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
