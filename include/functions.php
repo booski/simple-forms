@@ -291,7 +291,7 @@ function build_resultpage() {
 }
 
 function build_results($cutoff_date, $patient_id, $form_id) {
-    global $glue, $space, $get_results, $get_answers;
+    global $glue, $space, $get_answers;
     $qr = array(
         $glue  => ' -> ',
         $space => ' '
@@ -306,16 +306,33 @@ function build_results($cutoff_date, $patient_id, $form_id) {
     if($form_id === '') {
         $form_id = '%';
     }
-    
-    $get_results->bind_param('is', $cutoff_date, $form_id);
-    execute($get_results);
-    $resultrows = result($get_results);
 
-    $allheaders = True;
-    if($form_id !== '%') {
-        $allheaders = False;
+    $get_all_results = prepare('select * from `result` where `date`>? and `form` like ?');
+    $get_patient_results = prepare("select * from result
+                                    where `date`>?
+                                    and `form` like ?
+                                    and `token` in (
+                                      select token from `data`
+                                      where lower(`question`) like '%löpnummer%'
+                                      and `answer`=?
+                                    )");
+
+    $resultrows = null;
+    if($patient_id) {
+        $get_patient_results->bind_param('iss', $cutoff_date, $form_id, $patient_id);
+        execute($get_patient_results);
+        $resultrows = result($get_patient_results);
+    } else {
+        $get_all_results->bind_param('is', $cutoff_date, $form_id);
+        execute($get_all_results);
+        $resultrows = result($get_all_results);
     }
-    $first = True;
+
+    $allheaders = true;
+    if($form_id !== '%') {
+        $allheaders = false;
+    }
+    $first = true;
     
     foreach($resultrows as $row) {
         $date  = date('Y-m-d H:i', $row['date']);
@@ -330,24 +347,11 @@ function build_results($cutoff_date, $patient_id, $form_id) {
         }
         $data_rows = result($get_answers);
 
-        if($patient_id) {
-            $include = False;
-        } else {
-            $include = True;
-        }
-        
         $qline = "formulär\tdatum\t";
         $aline = "$form\t$date\t";
         foreach($data_rows as $data) {
             $q = replace($qr, $data['question']);
             $a = replace($ar, $data['answer']);
-
-            if($patient_id &&
-                strpos(strtolower($q), 'patientens löpnummer') !== FALSE) {
-                if($a == $patient_id) {
-                    $include = True;
-                }
-            }
 
             if(preg_match('%^([[:digit:]]+) - .+$%', $a)) {
                 $a = preg_replace('%^([[:digit:]]+) - .+$%', '$1', $a);
@@ -356,13 +360,11 @@ function build_results($cutoff_date, $patient_id, $form_id) {
             $qline .= $q."\t";
             $aline .= $a."\t";
         }
-        if($include) {
-            if($allheaders || $first) {
-                $out .= $qline."\n";
-                $first = False;
-            }
-            $out .= $aline."\n";
+        if($allheaders || $first) {
+            $out .= $qline."\n";
+            $first = false;
         }
+        $out .= $aline."\n";
     }
     if(!$out) {
         $out = "Det finns inga svar som passar dina kriterier.\n";
