@@ -1,7 +1,9 @@
 <?php
 
-require_once('./include.php'); // provides $db, $translations
+require_once('./include.php'); // provides $db, $translations, $admins
 require_once('./include/functions.php');
+
+authenticate($admins);
 
 $date_cutoff = '';
 if(isset($_GET['datum']) && $_GET['datum']) {

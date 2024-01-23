@@ -24,8 +24,9 @@ br:last-child {
 }
 
 .submit {
-    position: fixed;
-    bottom: 8pt;
+    position: -webkit-sticky;
+    position: sticky;
+    bottom: 16pt;
     left: 50%;
     transform: translate(-50%);
     z-index: 50;

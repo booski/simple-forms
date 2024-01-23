@@ -13,6 +13,17 @@ $find_token  = prepare('select `token` from `result` where `token`=?');
 $glue  = "\x1E"; //ascii record separator
 $space = "\x1F"; //ascii unit separator
 
+function authenticate($admins) {
+    $user = $_SERVER['REMOTE_USER'];
+    $callback = urlencode($_SERVER['SCRIPT_URI'].'?'.$_SERVER['QUERY_STRING']);
+    if(!$user) {
+        header('Location: /Shibboleth.sso/Login/SU?target='.$callback);
+    }
+    if($admins && !in_array($user, $admins)) {
+        die('Unauthorized.');
+    }
+}
+
 function build_index() {
     $patterns = array('%\./templates/%', '/\.form$/');
     $link = '<h3><a href="?id=¤id">¤title</a></h3>';

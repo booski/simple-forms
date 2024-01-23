@@ -1,8 +1,12 @@
 <?php
 
 $db_host = 'localhost';
-$db_user = 'db_example';
+$db_name = 'db_example';
 $db_pass = 'pw_example';
-$db_name = 'user_example';
+$db_user = 'user_example';
+
+// List the shib usernames for all users that should be able to download
+// results here. If the list is empty, no authentication will be required.
+$admins = array();
 
 ?>
