@@ -310,7 +310,8 @@ function build_results($cutoff_date, $patient_id, $form_id) {
     $ar = array(
         $glue  => '; ',
         $space => ' ',
-        "\n" => ' '
+        "\n" => ' ',
+        "\r" => ''
     );
 
     $out = '';
@@ -363,10 +364,10 @@ function build_results($cutoff_date, $patient_id, $form_id) {
         $aline = "$form\t$date\t";
         foreach($data_rows as $data) {
             $q = replace($qr, $data['question']);
-            $a = replace($ar, $data['answer']);
+            $a = replace($ar, trim($data['answer']));
 
             if(preg_match('%^([[:digit:]]+) - .+$%', $a)) {
-                $a = preg_replace('%^([[:digit:]]+) - .+$%', '$1', trim($a));
+                $a = preg_replace('%^([[:digit:]]+) - .+$%', '$1', $a);
             }
             
             $qline .= $q."\t";
