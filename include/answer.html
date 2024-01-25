@@ -4,17 +4,7 @@
 </div>
 <form method="GET" action="./get.php">
   <p>
-    Vill du inte filtrera så lämnar du fältet tomt.
-  </p>
-  <p>
-    <label for="patientid">
-      Ange patientnummer:
-    </label>
-    <input type="text"
-	   id="patientid"
-	   name="patientid"
-	   placeholder="t.ex. 100"
-	   title="Lämna tomt för att inte filtrera" />
+    Vill du inte filtrera så lämnar du fältet tomt. Formulär är obligatoriskt.
   </p>
   <p>
     <label for="formid">
@@ -24,6 +14,17 @@
 	   id="formid"
 	   name="formid"
 	   placeholder="t.ex. 8a"
+	   title="Formulär måste anges."
+           required="required" />
+  </p>
+  <p>
+    <label for="patientid">
+      Ange patientnummer:
+    </label>
+    <input type="text"
+	   id="patientid"
+	   name="patientid"
+	   placeholder="t.ex. 100"
 	   title="Lämna tomt för att inte filtrera" />
   </p>
   <p>

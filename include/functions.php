@@ -316,7 +316,8 @@ function build_results($cutoff_date, $patient_id, $form_id) {
     $out = '';
 
     if($form_id === '') {
-        $form_id = '%';
+        echo "Form must be specified.";
+        die;
     }
 
     $get_all_results = prepare('select * from `result` where `date`>? and `form` like ?');
@@ -340,10 +341,6 @@ function build_results($cutoff_date, $patient_id, $form_id) {
         $resultrows = result($get_all_results);
     }
 
-    $allheaders = true;
-    if($form_id !== '%') {
-        $allheaders = false;
-    }
     $first = true;
     $get_answers = prepare('select * from `data` where `token`=?');
 
@@ -373,7 +370,7 @@ function build_results($cutoff_date, $patient_id, $form_id) {
             $qline .= $q."\t";
             $aline .= $a."\t";
         }
-        if($allheaders || $first) {
+        if($first) {
             $out .= $qline."\n";
             $first = false;
         }
