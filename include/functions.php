@@ -301,20 +301,6 @@ function build_resultpage() {
 }
 
 function build_results($cutoff_date, $patient_id, $form_id) {
-    global $glue, $space;
-    $qr = array(
-        $glue  => ' -> ',
-        $space => ' '
-    );
-    $ar = array(
-        $glue  => '; ',
-        $space => ' ',
-        "\n" => ' ',
-        "\r" => ''
-    );
-
-    $out = '';
-
     if($form_id === '') {
         echo "Form must be specified.";
         die;
@@ -330,6 +316,19 @@ function build_results($cutoff_date, $patient_id, $form_id) {
                                       and `answer`=?
                                     )");
 
+    $get_questions = prepare('select distinct question from data
+                              where token in (
+                                select token from result where form=?
+                              )');
+    $get_questions->bind_param('s', $form_id);
+    execute($get_questions);
+    $question_rows = result($get_questions);
+
+    $all_questions = array();
+    foreach($question_rows as $row) {
+        $all_questions[] = $row['question'];
+    }
+
     $resultrows = null;
     if($patient_id) {
         $get_patient_results->bind_param('iss', $cutoff_date, $form_id, $patient_id);
@@ -341,13 +340,15 @@ function build_results($cutoff_date, $patient_id, $form_id) {
         $resultrows = result($get_all_results);
     }
 
-    $first = true;
+    $all_results = array();
     $get_answers = prepare('select * from `data` where `token`=?');
-
     foreach($resultrows as $row) {
-        $date  = date('Y-m-d H:i', $row['date']);
         $token = $row['token'];
-        $form  = $row['form'];
+        $resultset = new Resultset($row['form'],
+                                   $row['date'],
+                                   $token,
+                                   $all_questions);
+        $all_results[] = $resultset;
 
         $get_answers->bind_param('s', $token);
         if(!$get_answers->execute()) {
@@ -357,41 +358,103 @@ function build_results($cutoff_date, $patient_id, $form_id) {
         }
         $data_rows = result($get_answers);
 
-        $qline = "formulär\tdatum\t";
-        $aline = "$form\t$date\t";
         foreach($data_rows as $data) {
-            $q = replace($qr, $data['question']);
-            $a = replace($ar, trim($data['answer']));
-
-            if(preg_match('%^([[:digit:]]+) - .+$%', $a)) {
-                $a = preg_replace('%^([[:digit:]]+) - .+$%', '$1', $a);
-            }
-
-            $qline .= $q."\t";
-            $aline .= $a."\t";
+            $resultset->store_answer($data['question'], $data['answer']);
         }
-        if($first) {
-            $out .= $qline."\n";
-            $first = false;
-        }
-        $out .= $aline."\n";
     }
-    if(!$out) {
-        $out = "Det finns inga svar som passar dina kriterier.\n";
-        if($patient_id) {
-            $out .= "Patient: $patient_id\n";
-        }
+
+    if(!$all_results) {
+        $error_message = "Det finns inga svar som passar dina kriterier.\n";
         if($form_id !== '%') {
-            $out .= "Formulär: $form_id\n";
+            $error_message .= "Formulär: $form_id\n";
+        }
+        if($patient_id) {
+            $error_message .= "Patient: $patient_id\n";
         }
         if($cutoff_date) {
             $cutoff_date = date('Y-m-d', $cutoff_date);
-            $out .= "Tidigaste svarsdatum: $cutoff_date\n";
+            $error_message .= "Tidigaste svarsdatum: $cutoff_date\n";
         }
+        return $error_message;
     }
-    return $out;
+
+    // $all_questions should be sorted in some way
+    // that respects the numbering of questions
+
+    global $glue, $space;
+    $question_replacements = array(
+        $glue  => ' -> ',
+        $space => ' '
+    );
+    $column_titles_row = "Formulär\tDatum\t";
+    $column_titles_row .= replace($question_replacements,
+                                  join("\t", $all_questions));
+
+    $alldata_strings = array();
+    foreach($all_results as $result) {
+        $results_form = $result->get_form_id();
+        $results_date = $result->get_formatted_date();
+        $results_string = $result->get_formatted_results($all_questions);
+
+        $alldata_strings[] = "$results_form\t$results_date\t$results_string";
+    }
+
+    return $column_titles_row . "\n" . join("\n", $alldata_strings);
 }
 
+class Resultset {
+    private $answer_replacements;
+    private $form;
+    private $date;
+    private $token;
+
+    function __construct($form, $date, $token, $questions) {
+        global $glue, $space;
+        $this->answer_replacements = array(
+            $glue  => '; ',
+            $space => ' ',
+            "\n" => ' ',
+            "\r" => '',
+        );
+        $this->form = $form;
+        $this->date = $date;
+        $this->token = $token;
+        $this->results = array();
+        foreach($questions as $question) {
+            $this->results[$question] = '';
+        }
+    }
+
+    function store_answer($question, $answer) {
+        $this->results[$question] = $answer;
+    }
+
+    function get_form_id() {
+        return $this->form;
+    }
+
+    function get_formatted_date() {
+        return date('Y-m-d H:i', $this->date);
+    }
+
+    function get_formatted_results($questions) {
+        $out = '';
+        foreach($questions as $question) {
+            $answer = trim($this->results[$question]);
+
+            # This strips descriptive text from 'ranking' answers
+            if(preg_match('%^([[:digit:]]+) - .+$%', $answer)) {
+                $answer = preg_replace('%^([[:digit:]]+) - .+$%',
+                                       '$1',
+                                       $answer);
+            }
+
+            $out .= "$answer\t";
+        }
+        $out = replace($this->answer_replacements, $out);
+        return $out;
+    }
+}
 
 class Node {
     public $text = '';
