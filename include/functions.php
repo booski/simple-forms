@@ -7,7 +7,6 @@ $results   = get_fragments('./include/answer.html');
 $save_result = prepare('insert into `result`(`form`, `token`, `date`) values (?, ?, ?)');
 $get_results = prepare('select * from `result` where `date`>? and `form` like ?');
 $save_answer = prepare('insert into `data`(`token`, `question`, `answer`) values (?, ?, ?)');
-$get_answers = prepare('select * from `data` where `token`=?');
 $find_token  = prepare('select `token` from `result` where `token`=?');
 
 $glue  = "\x1E"; //ascii record separator
@@ -302,7 +301,7 @@ function build_resultpage() {
 }
 
 function build_results($cutoff_date, $patient_id, $form_id) {
-    global $glue, $space, $get_answers;
+    global $glue, $space;
     $qr = array(
         $glue  => ' -> ',
         $space => ' '
@@ -346,7 +345,8 @@ function build_results($cutoff_date, $patient_id, $form_id) {
         $allheaders = false;
     }
     $first = true;
-    
+    $get_answers = prepare('select * from `data` where `token`=?');
+
     foreach($resultrows as $row) {
         $date  = date('Y-m-d H:i', $row['date']);
         $token = $row['token'];
