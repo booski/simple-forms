@@ -11,6 +11,16 @@ $find_token  = prepare('select `token` from `result` where `token`=?');
 
 $glue  = "\x1E"; //ascii record separator
 $space = "\x1F"; //ascii unit separator
+$question_replacements = array(
+    $glue  => ' -> ',
+    $space => ' '
+);
+$answer_replacements = array(
+    $glue  => '; ',
+    $space => ' ',
+    "\n" => ' ',
+    "\r" => '',
+);
 
 function authenticate($admins) {
     $user = $_SERVER['REMOTE_USER'];
@@ -301,6 +311,8 @@ function build_resultpage() {
 }
 
 function build_results($cutoff_date, $patient_id, $form_id) {
+    global $question_replacements;
+
     if($form_id === '') {
         echo "Form must be specified.";
         die;
@@ -381,11 +393,6 @@ function build_results($cutoff_date, $patient_id, $form_id) {
     // $all_questions should be sorted in some way
     // that respects the numbering of questions
 
-    global $glue, $space;
-    $question_replacements = array(
-        $glue  => ' -> ',
-        $space => ' '
-    );
     $column_titles_row = "Formulär\tDatum\t";
     $column_titles_row .= replace($question_replacements,
                                   join("\t", $all_questions));
@@ -403,19 +410,11 @@ function build_results($cutoff_date, $patient_id, $form_id) {
 }
 
 class Resultset {
-    private $answer_replacements;
     private $form;
     private $date;
     private $token;
 
     function __construct($form, $date, $token, $questions) {
-        global $glue, $space;
-        $this->answer_replacements = array(
-            $glue  => '; ',
-            $space => ' ',
-            "\n" => ' ',
-            "\r" => '',
-        );
         $this->form = $form;
         $this->date = $date;
         $this->token = $token;
@@ -438,6 +437,7 @@ class Resultset {
     }
 
     function get_formatted_results($questions) {
+        global $answer_replacements;
         $out = '';
         foreach($questions as $question) {
             $answer = trim($this->results[$question]);
@@ -451,7 +451,7 @@ class Resultset {
 
             $out .= "$answer\t";
         }
-        $out = replace($this->answer_replacements, $out);
+        $out = replace($answer_replacements, $out);
         return $out;
     }
 }
