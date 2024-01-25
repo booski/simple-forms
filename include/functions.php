@@ -390,8 +390,8 @@ function build_results($cutoff_date, $patient_id, $form_id) {
         return $error_message;
     }
 
-    // $all_questions should be sorted in some way
-    // that respects the numbering of questions
+    // Sorting the questions so they get listed in a predictable order
+    usort($all_questions, 'compare_questions');
 
     $column_titles_row = "Formulär\tDatum\t";
     $column_titles_row .= replace($question_replacements,
@@ -407,6 +407,24 @@ function build_results($cutoff_date, $patient_id, $form_id) {
     }
 
     return $column_titles_row . "\n" . join("\n", $alldata_strings);
+}
+
+function compare_questions($q1, $q2) {
+    global $space, $glue;
+
+    $q1 = preg_replace("/^[$space$glue]+(.*)/", '$1', $q1);
+    $q2 = preg_replace("/^[$space$glue]+(.*)/", '$1', $q2);
+
+    $q1_starts_with_number = preg_match('/^[0-9]/', $q1);
+    $q2_starts_with_number = preg_match('/^[0-9]/', $q2);
+
+    if($q1_starts_with_number and !$q2_starts_with_number) {
+        return 1;
+    }
+    if(!$q1_starts_with_number and $q2_starts_with_number) {
+        return -1;
+    }
+    return strnatcasecmp($q1, $q2);
 }
 
 class Resultset {
