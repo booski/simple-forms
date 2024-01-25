@@ -33,7 +33,7 @@ function build_index() {
     $forms = glob('./templates/*.form');
     natsort($forms);
     foreach($forms as $form) {
-        
+
         $formid = preg_replace($patterns, '', $form);
         $out .= replace(array(
             '¤id'    => $formid,
@@ -71,14 +71,14 @@ function build_form($tree, $formid) {
         '¤type'     => 'hidden',
         '¤message'  => ''
     );
-    
+
     if(isset($_COOKIE['result'])) {
         $replacements['¤type'] = $_COOKIE['result'];
         $replacements['¤message'] = $_COOKIE['message'];
         setcookie('result', '', time() - 3600);
         setcookie('message', '', time() - 3600);
     }
-    
+
     return replace($replacements, $fragments['form']);
 }
 
@@ -117,7 +117,7 @@ function build_form_parts($tree, $group, $template, $parent_extras = array()) {
             );
             $html_string = replace($replacements, $fragments[$childtype]);
     }
-    
+
     $node_html = replace(array(
         '¤text'  => $html_string,
         '¤name'  => $group,
@@ -161,7 +161,7 @@ function build_form_parts($tree, $group, $template, $parent_extras = array()) {
             '¤text'     => $node_html,
             '¤children' => $childresult
         ), $fragments['parent']);
-        
+
     }
     return $node_html;
 }
@@ -171,7 +171,7 @@ function gen_token() {
     $token = bin2hex(openssl_random_pseudo_bytes(16));
     $find_token->bind_param('s', $token);
     execute($find_token);
-    
+
     if(count(result($find_token)) != 0) {
         return gen_token();
     } else {
@@ -195,7 +195,7 @@ function parse($infile) {
         $depth = strlen($result[1])/$indent_size + 1;
         $style = $result[2];
         $text = trim($result[3]);
-        
+
         $childtype = 'plain';
         if(array_key_exists(5, $result)) {
             $childtype = $result[5];
@@ -289,7 +289,7 @@ function build_resultpage() {
         '¤type'    => 'hidden',
         '¤message' => ''
     );
-    
+
     if(isset($_COOKIE['result'])) {
         $replacements['¤type'] = $_COOKIE['result'];
         $replacements['¤message'] = $_COOKIE['message'];
@@ -369,7 +369,7 @@ function build_results($cutoff_date, $patient_id, $form_id) {
             if(preg_match('%^([[:digit:]]+) - .+$%', $a)) {
                 $a = preg_replace('%^([[:digit:]]+) - .+$%', '$1', $a);
             }
-            
+
             $qline .= $q."\t";
             $aline .= $a."\t";
         }
@@ -453,7 +453,7 @@ class Node {
 class Builder {
     public $node = NULL;
     public $depth = 0;
-    
+
     function __construct($node, $depth = 0) {
         $this->node = $node;
         $this->depth = $depth;
