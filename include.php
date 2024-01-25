@@ -3,6 +3,9 @@
 require_once("./config.php");
 require_once("./template_translations.php");
 
+// Admins can retrieve results. Empty list means anyone can.
+$admins = array();
+
 $db = new mysqli($db_host, $db_user, $db_pass, $db_name);
 if($db->connect_errno) {
     throw new Exception('Failed to connect to db. The error was: '.$db->connect_error);
