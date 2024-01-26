@@ -311,6 +311,23 @@ function build_resultpage() {
 }
 
 function build_results($cutoff_date, $patient_id, $form_id) {
+    if($form_id !== '') {
+        return build_form_results($cutoff_date, $patient_id, $form_id);
+    }
+
+    $get_all_form_ids = prepare('select distinct `form` from `result`');
+    execute($get_all_form_ids);
+    $form_id_result = result($get_all_form_ids);
+
+    $results = array();
+    foreach($form_id_result as $row) {
+        $form_id = $row['form'];
+        $results[] = build_form_results($cutoff_date, $patient_id, $form_id);
+    }
+    return join("\n\n", $results);
+}
+
+function build_form_results($cutoff_date, $patient_id, $form_id) {
     global $question_replacements;
 
     if($form_id === '') {
