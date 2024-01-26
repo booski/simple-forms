@@ -336,18 +336,18 @@ function build_form_results($cutoff_date, $patient_id, $form_id) {
     }
 
     $get_all_results = prepare('select * from `result` where `date`>? and `form` like ?');
-    $get_patient_results = prepare("select * from result
+    $get_patient_results = prepare("select * from `result`
                                     where `date`>?
                                     and `form` like ?
                                     and `token` in (
-                                      select token from `data`
+                                      select `token` from `data`
                                       where lower(`question`) like '%löpnummer%'
                                       and `answer`=?
                                     )");
 
-    $get_questions = prepare('select distinct question from data
-                              where token in (
-                                select token from result where form=?
+    $get_questions = prepare('select distinct `question` from `data`
+                              where `token` in (
+                                select `token` from `result` where `form`=?
                               )');
     $get_questions->bind_param('s', $form_id);
     execute($get_questions);
