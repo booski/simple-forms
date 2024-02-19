@@ -475,7 +475,8 @@ class Resultset {
         global $answer_replacements;
         $out = '';
         foreach($questions as $question) {
-            $answer = trim($this->results[$question]);
+            $answer = replace($answer_replacements,
+                              trim($this->results[$question]));
 
             # This strips descriptive text from 'ranking' answers
             if(preg_match('%^([[:digit:]]+) - .+$%', $answer)) {
@@ -486,7 +487,6 @@ class Resultset {
 
             $out .= "$answer\t";
         }
-        $out = replace($answer_replacements, $out);
         return $out;
     }
 }
