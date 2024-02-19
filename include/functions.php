@@ -375,26 +375,12 @@ function build_form_results($cutoff_date, $patient_id, $form_id) {
     }
 
     $all_results = array();
-    $get_answers = prepare('select * from `data` where `token`=?');
     foreach($resultrows as $row) {
-        $token = $row['token'];
         $resultset = new Resultset($row['form'],
                                    $row['date'],
-                                   $token,
+                                   $row['token'],
                                    $all_questions);
         $all_results[] = $resultset;
-
-        $get_answers->bind_param('s', $token);
-        if(!$get_answers->execute()) {
-            error_log($get_answers->error);
-            echo "couldn't get result";
-            die;
-        }
-        $data_rows = result($get_answers);
-
-        foreach($data_rows as $data) {
-            $resultset->store_answer($data['question'], $data['answer']);
-        }
     }
 
     if(!$all_results) {
@@ -498,13 +484,33 @@ class Resultset {
     private $date;
     private $token;
 
-    function __construct($form, $date, $token, $questions) {
+    function __construct($form,
+                         $date,
+                         $token,
+                         $questions) {
         $this->form = $form;
         $this->date = $date;
         $this->token = $token;
         $this->results = array();
         foreach($questions as $question) {
             $this->results[$question] = '';
+        }
+        $this->store_answers();
+    }
+
+    function store_answers() {
+        $get_answers = prepare('select * from `data` where `token`=?');
+        $get_answers->bind_param('s', $this->token);
+        if(!$get_answers->execute()) {
+            error_log($get_answers->error);
+            echo "couldn't get result";
+            die;
+        }
+
+        $data_rows = result($get_answers);
+        foreach($data_rows as $data) {
+            var_dump($data['question'], $data['answer']);
+            $this->store_answer($data['question'], $data['answer']);
         }
     }
 
@@ -520,10 +526,13 @@ class Resultset {
         return date('Y-m-d H:i', $this->date);
     }
 
-    function get_formatted_results($questions) {
+    function get_formatted_results($sorted_questions) {
+        // This method takes the list of questions as an argument
+        // in order to keep a consistent sorting across Resultset objects
+
         global $answer_replacements;
         $out = '';
-        foreach($questions as $question) {
+        foreach($sorted_questions as $question) {
             $answer = replace($answer_replacements,
                               trim($this->results[$question]));
 
