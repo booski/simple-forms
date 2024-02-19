@@ -348,6 +348,8 @@ function build_form_results($cutoff_date, $patient_id, $form_id) {
         $all_questions[] = $row['question'];
     }
 
+    $updated_questions_map = map_updated_questions($form_id, $all_questions);
+
     $resultrows = null;
     if($patient_id) {
         $get_patient_results = prepare("select * from `result`
@@ -379,7 +381,8 @@ function build_form_results($cutoff_date, $patient_id, $form_id) {
         $resultset = new Resultset($row['form'],
                                    $row['date'],
                                    $row['token'],
-                                   $all_questions);
+                                   $all_questions,
+                                   $updated_questions_map);
         $all_results[] = $resultset;
     }
 
@@ -398,18 +401,27 @@ function build_form_results($cutoff_date, $patient_id, $form_id) {
         return $error_message;
     }
 
+    // Making sure only the latest version of each question will be included
+    $latest_questions = array();
+    foreach($all_questions as $question) {
+        $updated_question = $updated_questions_map[$question];
+        if($updated_question === $question) {
+            $latest_questions[] = $updated_question;
+        }
+    }
+
     // Sorting the questions so they get listed in a predictable order
-    usort($all_questions, 'compare_questions');
+    usort($latest_questions, 'compare_questions');
 
     $column_titles_row = "Formulär\tDatum\t";
     $column_titles_row .= replace($question_replacements,
-                                  join("\t", $all_questions));
+                                  join("\t", $latest_questions));
 
     $alldata_strings = array();
     foreach($all_results as $result) {
         $results_form = $result->get_form_id();
         $results_date = $result->get_formatted_date();
-        $results_string = $result->get_formatted_results($all_questions);
+        $results_string = $result->get_formatted_results($latest_questions);
 
         $alldata_strings[] = "$results_form\t$results_date\t$results_string";
     }
@@ -487,11 +499,13 @@ class Resultset {
     function __construct($form,
                          $date,
                          $token,
-                         $questions) {
+                         $questions,
+                         $updated_questions_map) {
         $this->form = $form;
         $this->date = $date;
         $this->token = $token;
         $this->results = array();
+        $this->updated_questions_map = $updated_questions_map;
         foreach($questions as $question) {
             $this->results[$question] = '';
         }
@@ -515,6 +529,9 @@ class Resultset {
     }
 
     function store_answer($question, $answer) {
+        if(array_key_exists($question, $this->updated_questions_map)) {
+            $question = $this->updated_questions_map[$question];
+        }
         $this->results[$question] = $answer;
     }
 
