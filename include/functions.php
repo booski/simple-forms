@@ -444,6 +444,50 @@ function compare_questions($q1, $q2) {
     return strnatcasecmp($q1, $q2);
 }
 
+function map_updated_questions($form, $all_questions) {
+    global $space, $glue;
+
+    $updates = array();
+    $latest_version = '';
+    foreach(file('./templates/'.$form.'.changes') as $line) {
+        $line = trim($line);
+        if(!$line) {
+            $latest_version = '';
+            continue;
+        }
+
+        // conform the incoming lines to the format that
+        // will be read from the database
+        $line = replace(array(' ' => $space,
+                              '.' => '_'),
+                        $line);
+
+        if(!$latest_version) {
+            $latest_version = $line;
+            continue;
+        }
+        $updates[$line] = $latest_version;
+    }
+
+    $question_map = array();
+    foreach($all_questions as $question) {
+        // Questions coming from the database are fully qualified in the
+        // document structure. Questions in the changes file are not, so we
+        // break the stored questions up and examine each part.
+        $question_parts = explode($glue, $question);
+        $updated_parts = array();
+        foreach($question_parts as $part) {
+            if(array_key_exists($part, $updates)) {
+                $updated_parts[] = $updates[$part];
+            } else {
+                $updated_parts[] = $part;
+            }
+        }
+        $question_map[$question] = join($glue, $updated_parts);
+    }
+    return $question_map;
+}
+
 class Resultset {
     private $form;
     private $date;
