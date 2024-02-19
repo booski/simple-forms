@@ -405,7 +405,7 @@ function build_form_results($cutoff_date, $patient_id, $form_id) {
     $latest_questions = array();
     foreach($all_questions as $question) {
         $updated_question = $updated_questions_map[$question];
-        if($updated_question === $question) {
+        if(!in_array($updated_question, $latest_questions)) {
             $latest_questions[] = $updated_question;
         }
     }
@@ -523,7 +523,6 @@ class Resultset {
 
         $data_rows = result($get_answers);
         foreach($data_rows as $data) {
-            var_dump($data['question'], $data['answer']);
             $this->store_answer($data['question'], $data['answer']);
         }
     }
