@@ -335,16 +335,6 @@ function build_form_results($cutoff_date, $patient_id, $form_id) {
         die;
     }
 
-    $get_all_results = prepare('select * from `result` where `date`>? and `form` like ?');
-    $get_patient_results = prepare("select * from `result`
-                                    where `date`>?
-                                    and `form` like ?
-                                    and `token` in (
-                                      select `token` from `data`
-                                      where lower(`question`) like '%löpnummer%'
-                                      and `answer`=?
-                                    )");
-
     $get_questions = prepare('select distinct `question` from `data`
                               where `token` in (
                                 select `token` from `result` where `form`=?
@@ -360,10 +350,25 @@ function build_form_results($cutoff_date, $patient_id, $form_id) {
 
     $resultrows = null;
     if($patient_id) {
-        $get_patient_results->bind_param('iss', $cutoff_date, $form_id, $patient_id);
+        $get_patient_results = prepare("select * from `result`
+                                        where `date`>?
+                                            and `form` like ?
+                                            and `token` in (
+                                        select `token` from `data`
+                                        where lower(`question`)
+                                            like '%löpnummer%'
+                                            and `answer`=?
+                                        )");
+        $get_patient_results->bind_param('iss',
+                                         $cutoff_date,
+                                         $form_id,
+                                         $patient_id);
         execute($get_patient_results);
         $resultrows = result($get_patient_results);
     } else {
+        $get_all_results = prepare('select * from `result`
+                                    where `date`>?
+                                        and `form` like ?');
         $get_all_results->bind_param('is', $cutoff_date, $form_id);
         execute($get_all_results);
         $resultrows = result($get_all_results);
