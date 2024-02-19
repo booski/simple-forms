@@ -474,9 +474,15 @@ function map_updated_questions($form, $all_questions) {
 
     $question_map = array();
     foreach($all_questions as $question) {
-        // Questions coming from the database are fully qualified in the
-        // document structure. Questions in the changes file are not, so we
-        // break the stored questions up and examine each part.
+        /*
+           Questions coming from the database are fully qualified in the
+           document structure. Questions in the changes file are not, so we
+           break the stored questions up and examine each part.
+
+           This approach WILL BREAK if one of two identical questions in
+           different parts of a form is updated. In that case, change files
+           will need to start using fully qualified questions.
+        */
         $question_parts = explode($glue, $question);
         $updated_parts = array();
         foreach($question_parts as $part) {
