@@ -113,9 +113,10 @@ some notable exceptions:
    (e.g. "3 - sometimes") will be stripped of its text part and only exported
    as `[number]` (e.g. "3").
 
-   The full answer text is stored in the database, so it is possible to
-   retrieve the full answer with a bit of work if necessary.
-
  * As noted above, if a form has a changes file, it will be used to merge
    columns that are regarded as old variants of a question into the column
    with the latest question format.
+
+These transformations are wholly in the export process, so the database always
+contains an unchanged record of all questions and answers as
+they were submitted.
