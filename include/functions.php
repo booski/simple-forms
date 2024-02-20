@@ -448,29 +448,9 @@ function compare_questions($q1, $q2) {
 }
 
 function map_updated_questions($form, $all_questions) {
-    global $space, $glue;
+    global $glue;
 
-    $updates = array();
-    $latest_version = '';
-    foreach(file('./templates/'.$form.'.changes') as $line) {
-        $line = trim($line);
-        if(!$line) {
-            $latest_version = '';
-            continue;
-        }
-
-        // conform the incoming lines to the format that
-        // will be read from the database
-        $line = replace(array(' ' => $space,
-                              '.' => '_'),
-                        $line);
-
-        if(!$latest_version) {
-            $latest_version = $line;
-            continue;
-        }
-        $updates[$line] = $latest_version;
-    }
+    $updates = read_question_updates($form);
 
     $question_map = array();
     foreach($all_questions as $question) {
@@ -495,6 +475,38 @@ function map_updated_questions($form, $all_questions) {
         $question_map[$question] = join($glue, $updated_parts);
     }
     return $question_map;
+}
+
+function read_question_updates($form) {
+    global $space;
+
+    $updates_file = './templates/'.$form.'.changes';
+    if(!file_exists($updates_file)) {
+        return array();
+    }
+
+    $updates = array();
+    $latest_version = '';
+    foreach(file($updates_file) as $line) {
+        $line = trim($line);
+        if(!$line) {
+            $latest_version = '';
+            continue;
+        }
+
+        // conform the incoming lines to the format that
+        // will be read from the database
+        $line = replace(array(' ' => $space,
+                              '.' => '_'),
+                        $line);
+
+        if(!$latest_version) {
+            $latest_version = $line;
+            continue;
+        }
+        $updates[$line] = $latest_version;
+    }
+    return $updates;
 }
 
 class Resultset {
